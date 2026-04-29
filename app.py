@@ -224,13 +224,20 @@ def reset_logo():
     return jsonify({"path": "", "filename": "pinklab_logo_text.png (default)"})
 
 
-@app.route("/api/files/<path:filepath>")
-def serve_output_file(filepath):
-    """Serve an output file for in-browser viewing."""
-    # filepath comes URL-decoded by Flask; ensure it starts with /
-    if not filepath.startswith("/"):
-        filepath = "/" + filepath
-    file_path = Path(filepath)
+@app.route("/api/files/<job_id>/<filename>")
+def serve_output_file(job_id, filename):
+    """Serve an output file for in-browser viewing.
+
+    Uses job_id to look up the output directory, avoiding Windows path
+    encoding issues (C: in URL etc).
+    """
+    job = jobs.get(job_id)
+    if not job:
+        return "Job not found", 404
+    output_dir = job.get("output_dir", "")
+    if not output_dir:
+        return "Output directory not found", 404
+    file_path = Path(output_dir) / filename
     if not file_path.exists():
         return "File not found", 404
     return send_from_directory(str(file_path.parent), file_path.name)

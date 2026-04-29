@@ -57,11 +57,6 @@
             color: #5a6577;
             margin-bottom: 6px;
         }
-        label .hint {
-            font-weight: 400;
-            color: #9ca3b0;
-            font-size: 12px;
-        }
 
         input[type="text"], input[type="url"] {
             width: 100%;
@@ -81,111 +76,38 @@
         }
         input::placeholder { color: #b8bfc9; }
 
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
+        /* Logo */
+        .logo-section { display: flex; align-items: center; gap: 14px; }
         .logo-preview {
-            width: 120px;
-            height: 48px;
-            border: 1px solid #e2e6ec;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fafbfc;
-            overflow: hidden;
-            flex-shrink: 0;
+            width: 120px; height: 48px;
+            border: 1px solid #e2e6ec; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: #fafbfc; overflow: hidden; flex-shrink: 0;
         }
-        .logo-preview img {
-            max-width: 110px;
-            max-height: 40px;
-            object-fit: contain;
-        }
-        .logo-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .logo-filename {
-            font-size: 13px;
-            color: #5a6577;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .logo-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 6px;
-        }
+        .logo-preview img { max-width: 110px; max-height: 40px; object-fit: contain; }
+        .logo-info { flex: 1; min-width: 0; }
+        .logo-filename { font-size: 13px; color: #5a6577; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .logo-buttons { display: flex; gap: 8px; margin-top: 6px; }
 
         .btn-small {
-            padding: 5px 12px;
-            font-size: 12px;
-            border-radius: 6px;
-            border: 1px solid #dce1e8;
-            background: white;
-            color: #5a6577;
-            cursor: pointer;
-            transition: all 0.15s;
+            padding: 5px 12px; font-size: 12px; border-radius: 6px;
+            border: 1px solid #dce1e8; background: white; color: #5a6577;
+            cursor: pointer; transition: all 0.15s;
         }
-        .btn-small:hover {
-            background: #f0f2f5;
-            border-color: #c5cad3;
-        }
+        .btn-small:hover { background: #f0f2f5; border-color: #c5cad3; }
 
-        .filename-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
-            align-items: center;
-        }
-        .filename-row .badge {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: 500;
-            white-space: nowrap;
-        }
+        /* Checkboxes & filenames */
+        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
         .badge-pdf { background: #fef2f2; color: #dc2626; }
         .badge-html { background: #eff6ff; color: #2563eb; }
 
-        .dir-row {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
-            align-items: end;
-        }
-        .dir-row .btn-small {
-            height: 38px;
-            display: flex;
-            align-items: center;
-        }
-
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .checkbox-row input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            accent-color: #667eea;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        .checkbox-row label {
-            margin-bottom: 0;
-            font-size: 13px;
-            font-weight: 500;
-            color: #5a6577;
-            cursor: pointer;
-        }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .checkbox-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #667eea; cursor: pointer; flex-shrink: 0; }
+        .checkbox-row label { margin-bottom: 0; font-size: 13px; font-weight: 500; color: #5a6577; cursor: pointer; }
         .file-group { transition: opacity 0.2s; }
         .file-group.disabled { opacity: 0.4; pointer-events: none; }
 
+        /* Export button */
         .btn-export {
             width: 100%;
             padding: 14px;
@@ -198,106 +120,109 @@
             cursor: pointer;
             transition: all 0.2s;
             letter-spacing: -0.3px;
+            margin-bottom: 16px;
         }
-        .btn-export:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35);
-        }
+        .btn-export:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35); }
         .btn-export:active { transform: translateY(0); }
-        .btn-export:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        .btn-export:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        .progress-area {
-            display: none;
-            margin-top: 20px;
-        }
+        /* Progress bar area */
+        .progress-area { display: none; margin-bottom: 16px; }
         .progress-area.visible { display: block; }
 
+        .progress-bar-wrap {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            border: 1px solid #e8ecf1;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .progress-step-label { font-size: 13px; font-weight: 500; color: #4a5568; }
+        .progress-pct { font-size: 15px; font-weight: 700; color: #667eea; }
+
+        .progress-track {
+            height: 10px;
+            background: #e8ecf1;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 9999px;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Detail log toggle */
+        .detail-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #9ca3b0;
+            cursor: pointer;
+            user-select: none;
+            width: fit-content;
+        }
+        .detail-toggle:hover { color: #667eea; }
+        .detail-arrow { font-size: 10px; transition: transform 0.2s; }
+        .detail-arrow.open { transform: rotate(90deg); }
+
         .progress-log {
+            display: none;
+            margin-top: 12px;
             background: #1e293b;
             color: #e2e8f0;
             border-radius: 10px;
-            padding: 18px;
+            padding: 14px 16px;
             font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
-            font-size: 12.5px;
+            font-size: 12px;
             line-height: 1.7;
-            max-height: 260px;
+            max-height: 220px;
             overflow-y: auto;
         }
+        .progress-log.visible { display: block; }
         .progress-log .line { padding: 1px 0; }
         .progress-log .line.error { color: #f87171; }
         .progress-log .line.done { color: #4ade80; }
-        .progress-log .spinner {
-            display: inline-block;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
 
-        .result-area {
-            display: none;
-            margin-top: 16px;
-        }
+        /* Result */
+        .result-area { display: none; margin-bottom: 16px; }
         .result-area.visible { display: block; }
 
-        .result-files {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .result-files { display: flex; flex-direction: column; gap: 8px; }
         .result-file {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
             padding: 10px 14px;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 8px;
+            background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
         }
         .result-file .icon { font-size: 18px; }
         .result-file .info { flex: 1; min-width: 0; }
         .result-file .name { font-size: 13px; font-weight: 500; color: #166534; }
         .result-file .type { font-size: 11px; color: #86efac; }
         .result-file .btn-open {
-            padding: 5px 14px;
-            font-size: 12px;
-            font-weight: 500;
-            border-radius: 6px;
-            border: 1px solid #86efac;
-            background: white;
-            color: #166534;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.15s;
-            white-space: nowrap;
+            padding: 5px 14px; font-size: 12px; font-weight: 500;
+            border-radius: 6px; border: 1px solid #86efac;
+            background: white; color: #166534; cursor: pointer;
+            text-decoration: none; transition: all 0.15s; white-space: nowrap;
         }
-        .result-file .btn-open:hover {
-            background: #dcfce7;
-            border-color: #4ade80;
-        }
+        .result-file .btn-open:hover { background: #dcfce7; border-color: #4ade80; }
 
         .result-error {
-            padding: 12px 16px;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            color: #dc2626;
-            font-size: 13px;
+            padding: 12px 16px; background: #fef2f2;
+            border: 1px solid #fecaca; border-radius: 8px;
+            color: #dc2626; font-size: 13px;
         }
 
-        .footer {
-            text-align: center;
-            padding: 20px;
-            font-size: 12px;
-            color: #9ca3b0;
-        }
-
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #9ca3b0; }
         #fileInput { display: none; }
     </style>
 </head>
@@ -309,7 +234,8 @@
 </div>
 
 <div class="container">
-    <!-- Page URL -->
+
+    <!-- Page URL + Export button -->
     <div class="card">
         <div class="card-title">Confluence Page</div>
         <div class="form-group">
@@ -317,6 +243,28 @@
             <input type="url" id="pageUrl"
                    placeholder="https://your-domain.atlassian.net/wiki/spaces/SPACE/pages/PAGE_ID/Title">
         </div>
+        <button class="btn-export" id="btnExport" onclick="startExport()">Export</button>
+
+        <!-- Progress bar (아래에 바로 표시) -->
+        <div class="progress-area" id="progressArea">
+            <div class="progress-bar-wrap">
+                <div class="progress-header">
+                    <span class="progress-step-label" id="progressLabel">준비 중...</span>
+                    <span class="progress-pct" id="progressPct">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="detail-toggle" onclick="toggleLog()">
+                    <span class="detail-arrow" id="detailArrow">▶</span>
+                    <span>자세히 보기</span>
+                </div>
+                <div class="progress-log" id="progressLog"></div>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div class="result-area" id="resultArea"></div>
     </div>
 
     <!-- Logo -->
@@ -355,9 +303,7 @@
                 <span class="badge badge-pdf">PDF</span>
             </div>
             <div class="file-group" id="docPdfGroup">
-                <div class="filename-row">
-                    <input type="text" id="docPdfName" placeholder="auto-generated from page title">
-                </div>
+                <input type="text" id="docPdfName" placeholder="auto-generated from page title">
             </div>
         </div>
 
@@ -368,9 +314,7 @@
                 <span class="badge badge-html">HTML</span>
             </div>
             <div class="file-group" id="presentHtmlGroup">
-                <div class="filename-row">
-                    <input type="text" id="presentHtmlName" placeholder="auto-generated from page title">
-                </div>
+                <input type="text" id="presentHtmlName" placeholder="auto-generated from page title">
             </div>
         </div>
 
@@ -381,23 +325,10 @@
                 <span class="badge badge-pdf">PDF</span>
             </div>
             <div class="file-group" id="presentPdfGroup">
-                <div class="filename-row">
-                    <input type="text" id="presentPdfName" placeholder="auto-generated from page title">
-                </div>
+                <input type="text" id="presentPdfName" placeholder="auto-generated from page title">
             </div>
         </div>
     </div>
-
-    <!-- Export Button -->
-    <button class="btn-export" id="btnExport" onclick="startExport()">Export</button>
-
-    <!-- Progress -->
-    <div class="progress-area" id="progressArea">
-        <div class="progress-log" id="progressLog"></div>
-    </div>
-
-    <!-- Result -->
-    <div class="result-area" id="resultArea"></div>
 
     <div class="footer">Confluence PDF Exporter &mdash; PinkLAB</div>
 </div>
@@ -405,54 +336,80 @@
 <script>
     let customLogoPath = "";
     let pollingTimer = null;
+    let logVisible = false;
 
-    function toggleFileGroup(prefix) {
-        const checked = document.getElementById(`enable${prefix.charAt(0).toUpperCase() + prefix.slice(1)}`).checked;
-        // Map prefix to group ID
-        const groupMap = { "docPdf": "docPdfGroup", "presentHtml": "presentHtmlGroup", "presentPdf": "presentPdfGroup" };
-        const group = document.getElementById(groupMap[prefix]);
-        if (group) {
-            group.classList.toggle("disabled", !checked);
+    // 단계별 진행률 맵 (로그 메시지 키워드 → %)
+    const STEP_MAP = [
+        { key: "Loading credentials",        pct: 5,  label: "인증 정보 로드 중..." },
+        { key: "Parsing URL",                pct: 8,  label: "URL 파싱 중..." },
+        { key: "Fetching page",              pct: 12, label: "Confluence API 요청 중..." },
+        { key: "v2 API failed",              pct: 14, label: "v1 API로 재시도 중..." },
+        { key: "Processing page content",    pct: 18, label: "페이지 콘텐츠 처리 중..." },
+        { key: "Processing code blocks",     pct: 22, label: "코드 블록 처리 중..." },
+        { key: "Processing panels",          pct: 26, label: "패널 처리 중..." },
+        { key: "Processing images",          pct: 30, label: "이미지 처리 중..." },
+        { key: "Resolving attachment",       pct: 38, label: "첨부파일 다운로드 중..." },
+        { key: "Building Document PDF",      pct: 48, label: "Document PDF 생성 중..." },
+        { key: "Building cover",             pct: 52, label: "커버 페이지 생성 중..." },
+        { key: "Document PDF saved",         pct: 58, label: "Document PDF 저장 완료" },
+        { key: "Building Presentation HTML", pct: 65, label: "프레젠테이션 HTML 생성 중..." },
+        { key: "Presentation HTML saved",    pct: 72, label: "HTML 저장 완료" },
+        { key: "Building Presentation PDF",  pct: 78, label: "프레젠테이션 PDF 생성 중..." },
+        { key: "Launching browser",          pct: 85, label: "Chromium 렌더링 중..." },
+        { key: "Presentation PDF saved",     pct: 95, label: "PDF 저장 완료" },
+        { key: "Export complete",            pct: 100, label: "완료!" },
+    ];
+
+    function getStepForLine(line) {
+        for (let i = STEP_MAP.length - 1; i >= 0; i--) {
+            if (line.includes(STEP_MAP[i].key)) return STEP_MAP[i];
         }
+        return null;
     }
 
-    // Load defaults on page load
+    function setProgress(pct, label) {
+        document.getElementById("progressFill").style.width = pct + "%";
+        document.getElementById("progressPct").textContent = pct + "%";
+        document.getElementById("progressLabel").textContent = label;
+    }
+
+    function toggleLog() {
+        logVisible = !logVisible;
+        document.getElementById("progressLog").classList.toggle("visible", logVisible);
+        document.getElementById("detailArrow").classList.toggle("open", logVisible);
+    }
+
+    function toggleFileGroup(prefix) {
+        const map = { "docPdf": "docPdfGroup", "presentHtml": "presentHtmlGroup", "presentPdf": "presentPdfGroup" };
+        const key = "enable" + prefix.charAt(0).toUpperCase() + prefix.slice(1);
+        const checked = document.getElementById(key).checked;
+        const group = document.getElementById(map[prefix]);
+        if (group) group.classList.toggle("disabled", !checked);
+    }
+
     window.addEventListener("DOMContentLoaded", async () => {
         try {
             const res = await fetch("/api/defaults");
             const data = await res.json();
             document.getElementById("outputDir").value = data.default_output_dir;
-            document.getElementById("outputDir").placeholder = data.default_output_dir;
-        } catch (e) {
-            console.error("Failed to load defaults:", e);
-        }
+        } catch (e) { console.error(e); }
     });
 
     async function uploadLogo(input) {
         const file = input.files[0];
         if (!file) return;
-
         const formData = new FormData();
         formData.append("logo", file);
-
         try {
             const res = await fetch("/api/logo/upload", { method: "POST", body: formData });
             const data = await res.json();
             if (data.error) { alert(data.error); return; }
-
             customLogoPath = data.path;
             document.getElementById("logoFilename").textContent = data.filename;
-
-            // Preview
             const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById("logoPreview").src = e.target.result;
-            };
+            reader.onload = (e) => { document.getElementById("logoPreview").src = e.target.result; };
             reader.readAsDataURL(file);
-        } catch (e) {
-            alert("Logo upload failed: " + e.message);
-        }
-
+        } catch (e) { alert("Logo upload failed: " + e.message); }
         input.value = "";
     }
 
@@ -475,6 +432,7 @@
         btn.disabled = true;
         btn.textContent = "Exporting...";
 
+        // Reset UI
         const progressArea = document.getElementById("progressArea");
         const progressLog = document.getElementById("progressLog");
         const resultArea = document.getElementById("resultArea");
@@ -482,14 +440,18 @@
         progressArea.classList.add("visible");
         resultArea.classList.remove("visible");
         resultArea.innerHTML = "";
-        progressLog.innerHTML = '<div class="line"><span class="spinner">&#9696;</span> Starting export...</div>';
+        progressLog.innerHTML = "";
+        logVisible = false;
+        progressLog.classList.remove("visible");
+        document.getElementById("detailArrow").classList.remove("open");
+        setProgress(0, "시작 중...");
 
         try {
             const res = await fetch("/api/export", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    url: url,
+                    url,
                     output_dir: document.getElementById("outputDir").value.trim(),
                     logo_path: customLogoPath,
                     doc_pdf_name: document.getElementById("docPdfName").value.trim(),
@@ -501,12 +463,7 @@
                 }),
             });
             const data = await res.json();
-            if (data.error) {
-                showError(data.error);
-                resetBtn();
-                return;
-            }
-
+            if (data.error) { showError(data.error); resetBtn(); return; }
             pollStatus(data.job_id);
         } catch (e) {
             showError("Request failed: " + e.message);
@@ -522,45 +479,51 @@
                 const res = await fetch(`/api/status/${jobId}`);
                 const job = await res.json();
 
-                // Update log
-                const logEl = document.getElementById("progressLog");
                 if (job.progress && job.progress.length > lastLen) {
                     const newLines = job.progress.slice(lastLen);
+                    const logEl = document.getElementById("progressLog");
+
                     for (const line of newLines) {
+                        // Update progress bar
+                        const step = getStepForLine(line);
+                        if (step) setProgress(step.pct, step.label);
+
+                        // Append to log
                         const div = document.createElement("div");
                         div.className = "line";
                         if (line.startsWith("Error")) div.className += " error";
-                        if (line.includes("complete")) div.className += " done";
+                        if (line.includes("complete") || line.includes("완료")) div.className += " done";
                         div.textContent = line;
                         logEl.appendChild(div);
                     }
                     lastLen = job.progress.length;
-                    logEl.scrollTop = logEl.scrollHeight;
+                    document.getElementById("progressLog").scrollTop = 9999;
                 }
 
                 if (job.status === "done") {
                     clearInterval(pollingTimer);
-                    showResult(job);
+                    setProgress(100, "완료! 🎉");
+                    showResult(job, jobId);
                     resetBtn();
                 } else if (job.status === "error") {
                     clearInterval(pollingTimer);
+                    setProgress(0, "오류 발생");
                     showError(job.error || "Unknown error");
                     resetBtn();
                 }
-            } catch (e) {
-                // ignore transient fetch errors
-            }
+            } catch (e) { /* ignore */ }
         }, 500);
     }
 
-    function showResult(job) {
+    function showResult(job, jobId) {
         const area = document.getElementById("resultArea");
         area.classList.add("visible");
 
         let html = '<div class="result-files">';
         for (const f of job.files) {
             const icon = f.type.includes("HTML") ? "&#128196;" : "&#128462;";
-            const fileUrl = `/api/files/${encodeURIComponent(f.path)}`;
+            // ✅ job_id + filename 방식으로 URL 생성 (Windows 경로 문제 해결)
+            const fileUrl = `/api/files/${jobId}/${encodeURIComponent(f.name)}`;
             html += `<div class="result-file">
                 <span class="icon">${icon}</span>
                 <div class="info">
@@ -571,7 +534,7 @@
             </div>`;
         }
         if (job.output_dir) {
-            html += `<div style="padding: 8px 14px; font-size: 12px; color: #6b7280;">Saved to: ${job.output_dir}</div>`;
+            html += `<div style="padding: 8px 14px; font-size: 12px; color: #6b7280;">📁 ${job.output_dir}</div>`;
         }
         html += '</div>';
         area.innerHTML = html;
@@ -580,7 +543,7 @@
     function showError(msg) {
         const area = document.getElementById("resultArea");
         area.classList.add("visible");
-        area.innerHTML = `<div class="result-error">${msg}</div>`;
+        area.innerHTML = `<div class="result-error">❌ ${msg}</div>`;
     }
 
     function resetBtn() {
