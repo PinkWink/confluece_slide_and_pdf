@@ -1,0 +1,9 @@
+.env
+confluence_token.txt
+output/
+__pycache__/
+*.pyc
+uploads/
+.claude/
+.DS_Store
+Thumbs.db

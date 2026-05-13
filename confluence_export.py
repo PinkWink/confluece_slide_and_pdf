@@ -579,6 +579,52 @@ def fetch_page_v1(page_id: str) -> dict:
     return resp.json()
 
 
+def fetch_child_page_ids(page_id: str) -> list:
+    """Return immediate child page metadata: [{"id": ..., "title": ...}, ...]."""
+    api_url = f"{CONFLUENCE_URL}/wiki/rest/api/content/{page_id}/child/page"
+    session = get_session()
+    children = []
+    start = 0
+    limit = 100
+    while True:
+        params = {"limit": limit, "start": start}
+        resp = session.get(api_url, auth=get_auth(), params=params, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        for item in data.get("results", []):
+            children.append({"id": str(item.get("id")), "title": item.get("title", "Untitled")})
+        size = data.get("size", len(data.get("results", [])))
+        if size < limit:
+            break
+        start += limit
+    return children
+
+
+def fetch_child_tree(page_id: str, max_depth: int = 0, _current_depth: int = 1) -> list:
+    """Return nested tree of descendants.
+
+    max_depth=0 means unlimited (all descendants). max_depth=1 means immediate
+    children only. Each node: {"id", "title", "depth", "children": [...]}.
+    """
+    nodes = []
+    for c in fetch_child_page_ids(page_id):
+        node = {"id": c["id"], "title": c["title"], "depth": _current_depth, "children": []}
+        if max_depth == 0 or _current_depth < max_depth:
+            node["children"] = fetch_child_tree(c["id"], max_depth, _current_depth + 1)
+        nodes.append(node)
+    return nodes
+
+
+def flatten_tree(tree: list) -> list:
+    """Flatten nested tree to ordered list of {"id","title","depth"}."""
+    out = []
+    for node in tree:
+        out.append({"id": node["id"], "title": node["title"], "depth": node["depth"]})
+        if node.get("children"):
+            out.extend(flatten_tree(node["children"]))
+    return out
+
+
 def download_image(url: str) -> str | None:
     """Download an image and return it as a base64 data URI."""
     try:
@@ -780,17 +826,29 @@ def process_images(soup: BeautifulSoup) -> None:
                 alt_name = img_tag.get("ac:alt", "")
                 if alt_name:
                     filename = alt_name
+            # Capture optional <ri:page> reference (image hosted on another page)
+            page_ref = attachment.find("ri:page")
+            ref_title = page_ref.get("ri:content-title", "") if page_ref else ""
+            ref_space = page_ref.get("ri:space-key", "") if page_ref else ""
             if _is_video_file(filename):
                 video = soup.new_tag("video", attrs={
                     "controls": "",
                     "data-attachment-video": filename,
                     "style": "max-width:100%; max-height:100%;",
                 })
+                if ref_title:
+                    video["data-attachment-page-title"] = ref_title
+                if ref_space:
+                    video["data-attachment-space-key"] = ref_space
                 video.string = filename
                 img_tag.replace_with(video)
                 continue
             img = soup.new_tag("img")
             img["data-attachment"] = filename
+            if ref_title:
+                img["data-attachment-page-title"] = ref_title
+            if ref_space:
+                img["data-attachment-space-key"] = ref_space
             img["alt"] = filename
         elif url_tag:
             img = soup.new_tag("img")
@@ -808,53 +866,143 @@ def process_images(soup: BeautifulSoup) -> None:
         img_tag.replace_with(img)
 
 
-def resolve_attachment_images(soup: BeautifulSoup, page_id: str) -> None:
-    """Download attachment images and embed as base64."""
-    session = get_session()
+_page_id_cache: dict = {}
+
+
+def _lookup_page_id_by_title(title: str, space_key: str = "") -> str | None:
+    """Resolve a page id from its title (and optional space key) via v1 search."""
+    if not title:
+        return None
+    cache_key = f"{space_key}::{title}"
+    if cache_key in _page_id_cache:
+        return _page_id_cache[cache_key]
+    try:
+        session = get_session()
+        params = {"title": title, "type": "page", "limit": 1}
+        if space_key:
+            params["spaceKey"] = space_key
+        api_url = f"{CONFLUENCE_URL}/wiki/rest/api/content"
+        resp = session.get(api_url, auth=get_auth(), params=params, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        results = data.get("results", [])
+        pid = str(results[0]["id"]) if results else None
+    except Exception:
+        pid = None
+    _page_id_cache[cache_key] = pid
+    return pid
+
+
+def _fetch_attachment_download_path(page_id: str, filename: str) -> str | None:
+    """Return an authenticated download URL for a named attachment, or None.
+
+    Uses /rest/api/content/{pageId}/child/attachment/{attachmentId}/download,
+    which authenticates with Basic auth and 302-redirects to the Atlassian
+    media CDN with a signed URL. The legacy /download/attachments/... path
+    on Confluence Cloud returns 401 with Basic auth.
+    """
+    if not page_id:
+        return None
+    att_url = (
+        f"{CONFLUENCE_URL}/wiki/rest/api/content/{page_id}"
+        f"/child/attachment?filename={quote(filename)}"
+    )
+    try:
+        session = get_session()
+        resp = session.get(att_url, auth=get_auth(), timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        results = data.get("results", [])
+        if not results:
+            return None
+        att_id = results[0].get("id")
+        if not att_id:
+            return None
+        # download_image() prepends CONFLUENCE_URL + "/wiki" for paths starting
+        # with "/", so we return the path without the /wiki prefix.
+        return f"/rest/api/content/{page_id}/child/attachment/{att_id}/download"
+    except Exception:
+        return None
+
+
+def resolve_attachment_images(soup: BeautifulSoup, page_id: str, fallback_page_ids: list | None = None) -> None:
+    """Download attachment images and embed as base64.
+
+    Honors optional <ri:page> reference captured during process_images. Also
+    tries any fallback_page_ids (e.g. the parent page) when the primary lookup
+    yields no result — useful when a child page references an attachment that
+    actually lives on the parent.
+    """
+    fallback_page_ids = fallback_page_ids or []
     for img in soup.find_all("img", attrs={"data-attachment": True}):
         filename = img["data-attachment"]
-        # Try v1 API for attachments (URL-encode filename for spaces/special chars)
-        att_url = (
-            f"{CONFLUENCE_URL}/wiki/rest/api/content/{page_id}"
-            f"/child/attachment?filename={quote(filename)}"
-        )
-        try:
-            resp = session.get(att_url, auth=get_auth(), timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("results"):
-                download_path = data["results"][0]["_links"]["download"]
-                data_uri = download_image(download_path)
-                if data_uri:
-                    img["src"] = data_uri
-        except Exception as e:
-            print(f"  Warning: Failed to resolve attachment '{filename}': {e}",
-                  file=sys.stderr)
-        del img["data-attachment"]
+        ref_title = img.get("data-attachment-page-title", "")
+        ref_space = img.get("data-attachment-space-key", "")
+
+        # Build ordered list of page ids to try
+        candidate_ids = []
+        if ref_title:
+            other_id = _lookup_page_id_by_title(ref_title, ref_space)
+            if other_id:
+                candidate_ids.append(other_id)
+        if page_id not in candidate_ids:
+            candidate_ids.append(page_id)
+        for fid in fallback_page_ids:
+            if fid and fid not in candidate_ids:
+                candidate_ids.append(fid)
+
+        download_path = None
+        for pid in candidate_ids:
+            download_path = _fetch_attachment_download_path(pid, filename)
+            if download_path:
+                break
+
+        if download_path:
+            data_uri = download_image(download_path)
+            if data_uri:
+                img["src"] = data_uri
+        else:
+            print(f"  Warning: Failed to resolve attachment '{filename}' "
+                  f"(tried pages: {candidate_ids})", file=sys.stderr)
+
+        for attr in ("data-attachment", "data-attachment-page-title", "data-attachment-space-key"):
+            if img.has_attr(attr):
+                del img[attr]
 
 
-def resolve_attachment_videos(soup: BeautifulSoup, page_id: str, output_dir: str = "output") -> None:
+def resolve_attachment_videos(soup: BeautifulSoup, page_id: str, output_dir: str = "output", fallback_page_ids: list | None = None) -> None:
     """Download attachment videos and save as files next to HTML."""
     session = get_session()
+    fallback_page_ids = fallback_page_ids or []
     for video in soup.find_all("video", attrs={"data-attachment-video": True}):
         filename = video["data-attachment-video"]
-        # URL-encode filename for spaces/special chars like "IMG_6713 (1).MOV"
-        att_url = (
-            f"{CONFLUENCE_URL}/wiki/rest/api/content/{page_id}"
-            f"/child/attachment?filename={quote(filename)}"
-        )
-        try:
-            resp = session.get(att_url, auth=get_auth(), timeout=30)
-            resp.raise_for_status()
-            data = resp.json()
-            if data.get("results"):
-                download_path = data["results"][0]["_links"]["download"]
+        ref_title = video.get("data-attachment-page-title", "")
+        ref_space = video.get("data-attachment-space-key", "")
+
+        candidate_ids = []
+        if ref_title:
+            other_id = _lookup_page_id_by_title(ref_title, ref_space)
+            if other_id:
+                candidate_ids.append(other_id)
+        if page_id not in candidate_ids:
+            candidate_ids.append(page_id)
+        for fid in fallback_page_ids:
+            if fid and fid not in candidate_ids:
+                candidate_ids.append(fid)
+
+        download_path = None
+        for pid in candidate_ids:
+            download_path = _fetch_attachment_download_path(pid, filename)
+            if download_path:
+                break
+
+        if download_path:
+            try:
                 dl_url = download_path
                 if dl_url.startswith("/"):
                     dl_url = CONFLUENCE_URL + "/wiki" + dl_url
                 dl_resp = session.get(dl_url, auth=get_auth(), timeout=300)
                 dl_resp.raise_for_status()
-                # Save video file to output directory
                 safe_name = re.sub(r'[^\w\s\-.]', '_', filename)
                 video_path = Path(output_dir) / safe_name
                 video_path.parent.mkdir(parents=True, exist_ok=True)
@@ -862,10 +1010,15 @@ def resolve_attachment_videos(soup: BeautifulSoup, page_id: str, output_dir: str
                 video["src"] = safe_name
                 video.string = ""
                 print(f"  Saved video: {safe_name} ({len(dl_resp.content) / 1024 / 1024:.1f} MB)")
-        except Exception as e:
-            print(f"  Warning: Failed to resolve video '{filename}': {e}",
-                  file=sys.stderr)
-        del video["data-attachment-video"]
+            except Exception as e:
+                print(f"  Warning: Failed to download video '{filename}': {e}", file=sys.stderr)
+        else:
+            print(f"  Warning: Failed to resolve video '{filename}' "
+                  f"(tried pages: {candidate_ids})", file=sys.stderr)
+
+        for attr in ("data-attachment-video", "data-attachment-page-title", "data-attachment-space-key"):
+            if video.has_attr(attr):
+                del video[attr]
 
 
 def process_toc(soup: BeautifulSoup) -> None:
@@ -1105,8 +1258,13 @@ def build_toc_page(soup: BeautifulSoup) -> str:
 """
 
 
-def process_page_content(page_data: dict, page_id: str, output_dir: str = "output") -> tuple:
-    """Process Confluence page data and return (title, processed_soup)."""
+def process_page_content(page_data: dict, page_id: str, output_dir: str = "output", fallback_page_ids: list | None = None) -> tuple:
+    """Process Confluence page data and return (title, processed_soup).
+
+    fallback_page_ids: additional page ids to try when resolving attachments,
+    used when a child page references an image that actually lives on the
+    parent.
+    """
     title = page_data.get("title", "Untitled")
 
     body_html = ""
@@ -1148,11 +1306,28 @@ def process_page_content(page_data: dict, page_id: str, output_dir: str = "outpu
     print("  Processing remaining macros...")
     process_remaining_macros(soup)
     print("  Resolving attachment images...")
-    resolve_attachment_images(soup, page_id)
+    resolve_attachment_images(soup, page_id, fallback_page_ids=fallback_page_ids)
     print("  Resolving attachment videos...")
-    resolve_attachment_videos(soup, page_id, output_dir)
+    resolve_attachment_videos(soup, page_id, output_dir, fallback_page_ids=fallback_page_ids)
 
     return title, soup
+
+
+def merge_pages(pages: list) -> BeautifulSoup:
+    """Combine multiple (title, soup) pairs into one soup.
+
+    The first page is treated as the parent and emitted as-is. Each subsequent
+    page is prefixed with an <h1> containing the page title, so it becomes a
+    top-level section in the merged document and a section slide in the
+    presentation pipeline.
+    """
+    parts = []
+    for i, (title, soup) in enumerate(pages):
+        if i > 0:
+            safe = re.sub(r"<[^>]+>", "", str(title)).strip() or "Untitled"
+            parts.append(f'<h1 class="page-section-title">{safe}</h1>')
+        parts.append(str(soup))
+    return BeautifulSoup("\n".join(parts), "html.parser")
 
 
 def build_html(title: str, soup: BeautifulSoup) -> str:
