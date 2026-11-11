@@ -1696,7 +1696,10 @@ body {
     border-bottom: 1px solid #E2E8F0;
 }
 .slide-content .code-block-body {
-    max-height: 340px;
+    /* Grow with the screen height (topbar + title + code header + bottom padding ≈ 250px).
+       A fixed 340px hid the last lines of longer code blocks, and in presentation mode the
+       mouse wheel changes slides, so the hidden lines could not be scrolled into view. */
+    max-height: max(340px, calc(100vh - 250px));
     overflow-y: auto;
 }
 .slide-content .code-line {
